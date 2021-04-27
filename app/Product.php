@@ -1,4 +1,4 @@
-<?php
+?php
 
 namespace App;
 
@@ -40,5 +40,26 @@ class Product extends Model
     public function orderDetails()
     {
         return $this->hasMany('App\OrderDetail');
+    }
+
+    public function searchByInputParameters($searchWord, $categoryId)
+    {
+        $query = $this->query();
+
+        $query->when($searchWord, function($query) use ($searchWord) {
+            return $query->where('product_name', 'like', '%' . self::escapeLike($searchWord) . '%');
+        });
+        $query->when($categoryId, function($query) use ($categoryId) {
+            return $query->where('category_id', $categoryId);
+        });
+
+        return $query->orderBy('category_id', 'asc')
+        ->paginate(15);
+    }
+
+    // str_replaceでセキュリティ対策
+    public static function escapeLike($str)
+    {
+        return str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $str);
     }
 }
